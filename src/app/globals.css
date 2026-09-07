@@ -1,0 +1,188 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+@theme {
+  /* Base surface — deep pitch-black-green */
+  --color-pitch-950: #07110d;
+  --color-pitch-900: #0c1a14;
+  --color-pitch-800: #132419;
+
+  /* Shared neutral scale for text/borders/surfaces — full 100→950 ramp.
+     The 200/400/600/800/950 steps are used app-wide for muted text, borders,
+     and inset panels; they must exist here or Tailwind 4 generates nothing. */
+  --color-chalk-100: #f4f7f4;
+  --color-chalk-200: #e2e8e4;
+  --color-chalk-300: #c7d2cb;
+  --color-chalk-400: #a6b3ab;
+  --color-chalk-500: #8ea297;
+  --color-chalk-600: #66766c;
+  --color-chalk-700: #4d5f54;
+  --color-chalk-800: #2b3a32;
+  --color-chalk-950: #0b1510;
+
+  /* Per-league accents */
+  --color-blitz: #ff5a36;
+  --color-blitz-dim: #7a2c19;
+  --color-classic: #ffd23f;
+  --color-classic-dim: #7a6318;
+  --color-horizon: #5ec8ff;
+  --color-horizon-dim: #204a63;
+
+  /* The live per-league accent, registered as a real theme colour so the full
+     range of utilities AND opacity modifiers work: bg-accent, text-accent/70,
+     border-accent/20, ring-accent, etc. The value is the runtime --accent var
+     (set on :root and swapped per [data-accent] below), so opacity modifiers
+     resolve via color-mix at computed-value time — the whole point of "one
+     product, three moods". Without this registration, `accent/N` silently
+     generates nothing. */
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-contrast: var(--accent-contrast);
+
+  /* Score semantics */
+  --color-gain: #3ddc84;
+  --color-loss: #ff5566;
+
+  /* Font families — wired to the next/font faces loaded in layout.tsx.
+     Display: Oswald (condensed scoreboard face). Body: Inter. Mono: JetBrains. */
+  --font-display: var(--font-oswald), "Oswald", sans-serif;
+  --font-body: var(--font-inter), "Inter", sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
+
+  /* Border radius */
+  --radius-card: 14px;
+
+  /* Motion — one set of keyframes powers the gamified layer app-wide. */
+  --animate-fade-in: fade-in 0.4s ease forwards;
+  --animate-rise-in: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-pop-in: pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  --animate-pulse-live: pulse-live 2s ease-in-out infinite;
+  --animate-shine: shine 2.4s linear infinite;
+  --animate-count-up: rise-in 0.5s ease forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+@keyframes shine {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes trade-arrow-up {
+  0% { opacity: 0; transform: translateY(55vh) scale(.65) rotate(-8deg); }
+  18% { opacity: .9; }
+  100% { opacity: 0; transform: translateY(-55vh) scale(1.25) rotate(8deg); }
+}
+@keyframes trade-arrow-down {
+  0% { opacity: 0; transform: translateY(-55vh) scale(.65) rotate(8deg); }
+  18% { opacity: .9; }
+  100% { opacity: 0; transform: translateY(55vh) scale(1.25) rotate(-8deg); }
+}
+@keyframes claim-progress {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(210%); }
+}
+.trade-arrow-up,
+.trade-arrow-down {
+  position: absolute;
+  top: 50%;
+  font-size: clamp(1.4rem, 3vw, 2.8rem);
+  font-weight: 800;
+  text-shadow: 0 0 18px currentColor;
+  animation-duration: 2.1s;
+  animation-timing-function: cubic-bezier(.22, 1, .36, 1);
+  animation-iteration-count: infinite;
+}
+.trade-arrow-up { color: var(--color-gain); animation-name: trade-arrow-up; }
+.trade-arrow-down { color: var(--color-loss); animation-name: trade-arrow-down; }
+.trade-motion-glow { animation: pulse-live 1.8s ease-in-out infinite; }
+
+:root {
+  --font-display: var(--font-oswald), "Oswald", sans-serif;
+  --font-body: var(--font-inter), "Inter", sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
+
+  /* Per-league accent. This single triple is swapped by [data-accent] below,
+     letting any subtree render in its league's colour by reading var(--accent)
+     instead of hard-coding blitz/classic/horizon. Default = classic gold. */
+  --accent: #ffd23f;
+  --accent-dim: #7a6318;
+  --accent-contrast: #07110d;
+}
+
+[data-accent="blitz"] {
+  --accent: #ff5a36;
+  --accent-dim: #7a2c19;
+  --accent-contrast: #07110d;
+}
+[data-accent="classic"] {
+  --accent: #ffd23f;
+  --accent-dim: #7a6318;
+  --accent-contrast: #07110d;
+}
+[data-accent="horizon"] {
+  --accent: #5ec8ff;
+  --accent-dim: #204a63;
+  --accent-contrast: #07110d;
+}
+
+body {
+  background-color: var(--color-pitch-950);
+  color: var(--color-chalk-100);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Live/mono numerics (odds, prices, scores) always use tabular figures so
+   columns of numbers don't jitter as digits change on live updates. */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Accent helpers — read the per-league CSS variable so components stay
+   league-agnostic. `text-accent`, `bg-accent`, `border-accent` etc. */
+.text-accent { color: var(--accent); }
+.bg-accent { background-color: var(--accent); }
+.border-accent { border-color: var(--accent); }
+.accent-contrast { color: var(--accent-contrast); }
+.ring-accent { --tw-ring-color: var(--accent); }
+
+/* A soft floodlit glow used behind heroes and league headers. */
+.floodlight {
+  background:
+    radial-gradient(60% 55% at 50% -10%, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 70%),
+    radial-gradient(circle at 70% 0%, #17382a 0%, #07110d 46%);
+}
+
+/* Thin, unobtrusive scrollbars that match the pitch surface. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-chalk-800) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-chalk-800);
+  border-radius: 9999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

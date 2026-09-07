@@ -1,0 +1,50 @@
+{
+  "id": "/",
+  "name": "Clash Markets",
+  "short_name": "Clash",
+  "description": "Draft the market. Captain your conviction. Clash for the table.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "portrait-primary",
+  "theme_color": "#07110d",
+  "background_color": "#07110d",
+  "categories": ["finance", "games", "entertainment"],
+  "icons": [
+    {
+      "src": "/assets/logo/cm-logo.png",
+      "sizes": "1280x1280",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "All markets",
+      "short_name": "Markets",
+      "url": "/all-markets",
+      "icons": [{ "src": "/assets/logo/cm-logo.png", "sizes": "1280x1280", "type": "image/png" }]
+    },
+    {
+      "name": "Live wall",
+      "short_name": "Live wall",
+      "url": "/wall",
+      "icons": [{ "src": "/assets/logo/cm-logo.png", "sizes": "1280x1280", "type": "image/png" }]
+    }
+  ]
+}

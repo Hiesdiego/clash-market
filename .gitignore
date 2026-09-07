@@ -1,0 +1,45 @@
+# Dependencies and package stores
+node_modules/
+.pnpm-store/
+
+# Next.js build output
+.next/
+out/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# TypeScript incremental build metadata
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Test and coverage output
+coverage/
+.nyc_output/
+
+
+# Editor and operating-system files
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.DS_Store
+Thumbs.db
+
+# Miscellaneous
+.xxyx
+
+#DB
+.supabase/
+.src/supabase/
+
+# Supabase local database migrations are managed outside this repository
+supabase/migrations/

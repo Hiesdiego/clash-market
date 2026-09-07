@@ -1,0 +1,56 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    // Frozen snapshots of superseded code kept for reference only. Not part
+    // of the app or the worker; intentionally excluded from typecheck/build.
+    "src/archive",
+    // Dead root-level duplicates, superseded by src/lib/supabase/server.ts and
+    // src/lib/dreamdex/client.ts respectively. Unreferenced by the app/worker
+    // (verified: no import resolves to them); kept on disk but excluded from
+    // compilation, same rationale as src/archive above.
+    "server.ts",
+    "somnia-client.ts"
+  ]
+}
+
+
+// src/archive was deleted by EARTHTRADER

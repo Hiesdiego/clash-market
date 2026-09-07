@@ -1,0 +1,130 @@
+services:
+  - type: web
+    name: clash-markets
+    runtime: node
+    plan: starter
+    buildCommand: pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22.13.1"
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: NEXT_PUBLIC_SOMNIA_NETWORK
+        sync: false
+      - key: NEXT_PUBLIC_PRIVY_APP_ID
+        sync: false
+      - key: PRIVY_APP_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_PRIVY_SIGNER_ID
+        sync: false
+      - key: NEXT_PUBLIC_PRIVY_TRADE_POLICY_ID
+        sync: false
+      - key: NEXT_PUBLIC_PRIVY_REDEEM_POLICY_ID
+        sync: false
+      - key: SOMNIA_MARKETS_INDEXER_URL
+        sync: false
+      - key: SOMNIA_MARKETS_WS_RPC_URL
+        sync: false
+      - key: NEXT_PUBLIC_SOMNIA_MARKETS_INDEXER_URL
+        sync: false
+      - key: NEXT_PUBLIC_SOMNIA_MARKETS_WS_RPC_URL
+        sync: false
+      - key: VALIDATION_CLOUD_RPC
+        sync: false
+      - key: VALIDATION_CLOUD_WSS
+        sync: false
+      - key: NEXT_PUBLIC_VALIDATION_CLOUD_RPC
+        sync: false
+      - key: NEXT_PUBLIC_VALIDATION_CLOUD_WSS
+        sync: false
+      - key: SYNC_JOB_PRIVATE_KEY
+        sync: false
+      - key: SYNC_JOB_SECRET
+        sync: false
+      - key: ADMIN_API_SECRET
+        sync: false
+      - key: FAUCET_PRIVATE_KEY
+        sync: false
+      - key: FAUCET_STT_AMOUNT
+        value: "1"
+      - key: FAUCET_TUSDC_AMOUNT
+        value: "10"
+      - key: NEXT_PUBLIC_SUPABASE_URL_TESTNET
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY_TESTNET
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY_TESTNET
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL_MAINNET
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY_MAINNET
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY_MAINNET
+        sync: false
+
+  - type: web
+    name: clash-market-worker
+    runtime: node
+    plan: starter
+    buildCommand: pnpm install --frozen-lockfile
+    startCommand: pnpm worker
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22.13.1"
+      - key: NEXT_PUBLIC_SOMNIA_NETWORK
+        sync: false
+      - key: NEXT_PUBLIC_PRIVY_APP_ID
+        sync: false
+      - key: PRIVY_APP_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_PRIVY_SIGNER_ID
+        sync: false
+      - key: NEXT_PUBLIC_PRIVY_TRADE_POLICY_ID
+        sync: false
+      - key: NEXT_PUBLIC_PRIVY_REDEEM_POLICY_ID
+        sync: false
+      - key: SOMNIA_MARKETS_INDEXER_URL
+        sync: false
+      - key: SOMNIA_MARKETS_WS_RPC_URL
+        sync: false
+      - key: NEXT_PUBLIC_SOMNIA_MARKETS_INDEXER_URL
+        sync: false
+      - key: NEXT_PUBLIC_SOMNIA_MARKETS_WS_RPC_URL
+        sync: false
+      - key: VALIDATION_CLOUD_RPC
+        sync: false
+      - key: VALIDATION_CLOUD_WSS
+        sync: false
+      - key: NEXT_PUBLIC_VALIDATION_CLOUD_RPC
+        sync: false
+      - key: NEXT_PUBLIC_VALIDATION_CLOUD_WSS
+        sync: false
+      - key: SYNC_JOB_PRIVATE_KEY
+        sync: false
+      - key: SYNC_JOB_SECRET
+        sync: false
+      - key: ADMIN_API_SECRET
+        sync: false
+      - key: FAUCET_PRIVATE_KEY
+        sync: false
+      - key: FAUCET_STT_AMOUNT
+        value: "1"
+      - key: FAUCET_TUSDC_AMOUNT
+        value: "10"
+      - key: NEXT_PUBLIC_SUPABASE_URL_TESTNET
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY_TESTNET
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY_TESTNET
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL_MAINNET
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY_MAINNET
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY_MAINNET
+        sync: false
