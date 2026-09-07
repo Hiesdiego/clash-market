@@ -11,6 +11,7 @@ import { activeChain, activeCollateral } from "@/lib/chains/wallet-balances";
 import { useAuth } from "@/components/providers/auth-provider";
 import type { Database } from "@/lib/supabase/database.types";
 import { MarketCard, type MarketCardView } from "@/components/markets/market-card";
+import { marketCategory } from "@/lib/markets/category";
 import { MarketCardFooter } from "@/components/markets/market-card-footer";
 import { ScoringExplainer } from "@/components/leagues/scoring-explainer";
 import { Button } from "@/components/ui/button";
@@ -35,14 +36,20 @@ const MIN_STAKE_USD = 0.1;
 const CHIP_LABELS: Record<ChipType, string> = { triple_captain: "Triple Captain", spotter: "Spotter" };
 
 function toView(market: Market): MarketCardView {
-  const opening = (market.raw_snapshot as { clashOpeningPrice?: number | null } | null)?.clashOpeningPrice ?? null;
+  const snapshot = market.raw_snapshot as { clashOpeningPrice?: number | null; info?: { question?: unknown } } | null;
+  const opening = snapshot?.clashOpeningPrice ?? null;
+  const rawQuestion = typeof snapshot?.info?.question === "string" ? snapshot.info.question.trim() : "";
+  const openingPrice = opening != null && Number.isFinite(Number(opening)) ? Number(opening) : null;
+  const category = marketCategory({ asset: market.underlying, openingPrice });
   return {
     id: market.id,
     onchainMarketId: market.onchain_market_id,
     asset: market.underlying,
-    question: `${market.underlying} — up or down by expiry?`,
+    question: category === "price"
+      ? `${market.underlying} — up or down by expiry?`
+      : rawQuestion || `${market.underlying} — up or down by expiry?`,
     windowSeconds: market.window_length_seconds,
-    openingPrice: opening != null && Number.isFinite(Number(opening)) ? Number(opening) : null,
+    openingPrice,
     spread: market.spread,
     bestBid: market.best_bid,
     bestAsk: market.best_ask,

@@ -4,6 +4,8 @@ import { useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "r
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MarketCountdown } from "@/components/markets/market-countdown";
+import { arenaMarketMeta } from "@/lib/markets/arena";
+import { marketCategory } from "@/lib/markets/category";
 
 /**
  * The single market-card shell, shared by every surface that shows markets —
@@ -90,6 +92,23 @@ export function AssetLogo({ asset, size = "md" }: { asset: string; size?: "sm" |
   );
 }
 
+function ArenaLogo({ size = "md" }: { size?: "sm" | "md" }) {
+  const dimensions = size === "sm" ? "h-8 w-8" : "h-11 w-11";
+  return (
+    <div className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-accent/40 bg-accent/10 ${dimensions}`}>
+      <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="5" y="8.5" width="14" height="10" rx="2.5" />
+        <path d="M12 8.5V4.5" />
+        <circle cx="12" cy="3.4" r="1.1" />
+        <circle cx="9.5" cy="13" r="1" />
+        <circle cx="14.5" cy="13" r="1" />
+        <path d="M9.5 16h5" />
+        <path d="M2.5 12.5v3M21.5 12.5v3" />
+      </svg>
+    </div>
+  );
+}
+
 function formatWindow(seconds?: number | null): string | null {
   if (!seconds || seconds <= 0) return null;
   if (seconds % 3600 === 0) return `${seconds / 3600}h window`;
@@ -120,15 +139,31 @@ export function MarketCard({
   const router = useRouter();
   const windowLabel = formatWindow(view.windowSeconds);
   const assetName = assetDisplayName(view.asset);
+  const category = marketCategory({
+    asset: view.asset,
+    openingPrice: view.openingPrice,
+    strikePrice: view.strikePrice,
+    kind: view.kind,
+  });
+  const arena = category === "arena" ? arenaMarketMeta(view.asset) : null;
+  const isOther = category === "other";
   // A fixed-strike market ("Will ETH be above $X at expiry?") settles against a
   // set strike and has no opening/call price, so show the strike instead — the
   // reference line every trader on that card actually needs.
   const isFixedStrike = view.kind === "fixed-strike";
   const referenceLabel = isFixedStrike ? "Strike price" : "Opening / call price";
   const referenceValue = isFixedStrike ? view.strikePrice : view.openingPrice;
-  const marketQuestion = isFixedStrike
-    ? `Will ${assetName} settle above ${formatPrice(view.strikePrice)} at expiry?`
-    : `Will ${assetName} finish higher at expiry?`;
+  const marketQuestion = category === "price"
+    ? (isFixedStrike
+        ? `Will ${assetName} settle above ${formatPrice(view.strikePrice)} at expiry?`
+        : `Will ${assetName} finish higher at expiry?`)
+    : view.question?.trim() || (arena ? `${assetName} — agent NAV battle` : `${assetName} market`);
+  const subtitle = arena ? arena.label : isOther ? "Prediction market" : `${assetName} price direction`;
+  const resolutionCaption = arena
+    ? arena.description
+    : isOther
+      ? "Resolves at market expiry."
+      : "Resolves at market expiry against the reference price.";
   // Bid/ask on a binary market ARE the implied probability of "Up", so we show
   // them as decimal odds (1 / probability) — punchier and more familiar than a
   // raw 0–1 price. (#6: real-time bid/ask movement → decimal odds.)
@@ -173,10 +208,10 @@ export function MarketCard({
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <AssetLogo asset={view.asset} />
+          {arena ? <ArenaLogo /> : <AssetLogo asset={view.asset} />}
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-chalk-500">{live ? "Live market" : "Settled market"}</p>
-            <p className="mt-1 text-sm font-semibold text-chalk-200">{assetName} price direction</p>
+            <p className="mt-1 text-sm font-semibold text-chalk-200">{subtitle}</p>
           </div>
         </div>
         {view.expiresAt && <MarketCountdown expiresAt={view.expiresAt} />}
@@ -186,21 +221,27 @@ export function MarketCard({
         <Link href={href} className="mt-5 block">
           <h3 className="text-lg font-semibold leading-snug text-chalk-100 transition-colors hover:text-accent">{marketQuestion}</h3>
           <p className="sr-only">{assetName} · Binary{windowLabel ? ` · ${windowLabel}` : ""}. {marketQuestion}</p>
-          <p className="mt-2 text-xs text-chalk-500">Resolves at market expiry against the reference price.</p>
+          <p className="mt-2 text-xs text-chalk-500">{resolutionCaption}</p>
         </Link>
       ) : (
         <>
           <h3 className="mt-5 text-lg font-semibold leading-snug text-chalk-100">{marketQuestion}</h3>
           <p className="sr-only">{assetName} · Binary{windowLabel ? ` · ${windowLabel}` : ""}. {marketQuestion}</p>
-          <p className="mt-2 text-xs text-chalk-500">Resolves at market expiry against the reference price.</p>
+          <p className="mt-2 text-xs text-chalk-500">{resolutionCaption}</p>
         </>
       )}
 
+      <p className="mt-3 text-[11px] font-medium uppercase tracking-[0.18em] text-chalk-600">
+        <span className="text-gain">Clash</span> if yes · <span className="text-loss">Crash</span> if no
+      </p>
+
       <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-chalk-950 p-3 text-sm">
-        <div>
-          <p className="text-xs text-chalk-500">{referenceLabel}</p>
-          <p className="mt-1 font-semibold text-accent">{formatPrice(referenceValue)}</p>
-        </div>
+        {!isOther && (
+          <div>
+            <p className="text-xs text-chalk-500">{arena ? "Settles on" : referenceLabel}</p>
+            <p className="mt-1 font-semibold text-accent">{arena ? "Agent NAV" : formatPrice(referenceValue)}</p>
+          </div>
+        )}
         <div>
           <p className="text-xs text-chalk-500">Spread</p>
           <p className="mt-1 font-semibold text-chalk-200">

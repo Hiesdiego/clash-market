@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
+import { getPublicEnv } from "@/lib/env";
 
 /**
  * Sign-in entry point. Connection itself is now automatic — AuthProvider
@@ -18,6 +19,8 @@ export function ConnectWalletButton() {
   const [error, setError] = useState<string | null>(null);
   const [walletMenuOpen, setWalletMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [claiming, setClaiming] = useState(false);
+  const [claimMessage, setClaimMessage] = useState<string | null>(null);
   const walletMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,6 +47,21 @@ export function ConnectWalletButton() {
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
       setError("Could not copy the wallet address");
+    }
+  }
+
+  async function claimTokens() {
+    setClaiming(true);
+    setClaimMessage(null);
+    try {
+      const response = await fetch("/api/faucet/claim", { method: "POST" });
+      const body = (await response.json()) as { error?: string };
+      if (!response.ok) throw new Error(body.error ?? "Claim failed");
+      setClaimMessage("Test tokens claimed");
+    } catch (error) {
+      setClaimMessage(error instanceof Error ? error.message : "Claim failed");
+    } finally {
+      setClaiming(false);
     }
   }
 
@@ -121,6 +139,29 @@ export function ConnectWalletButton() {
                 {copied ? "Address copied" : "Copy address"}
               </button>
             </div>
+
+            {getPublicEnv().NEXT_PUBLIC_TESTNET_FAUCET_BOT_URL ? (
+              <a
+                href={getPublicEnv().NEXT_PUBLIC_TESTNET_FAUCET_BOT_URL}
+                target="_blank"
+                rel="noreferrer"
+                role="menuitem"
+                className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-accent/50 px-3 py-2 text-xs font-semibold text-accent transition hover:bg-accent/10"
+              >
+                Get test tokens
+              </a>
+            ) : (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={claimTokens}
+                disabled={claiming}
+                className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-accent/50 px-3 py-2 text-xs font-semibold text-accent transition hover:bg-accent/10 disabled:cursor-wait disabled:opacity-60"
+              >
+                {claiming ? "Claiming…" : "Claim test tokens"}
+              </button>
+            )}
+            {claimMessage && <p className="mt-2 text-center text-[11px] text-chalk-300">{claimMessage}</p>}
 
             <button
               type="button"

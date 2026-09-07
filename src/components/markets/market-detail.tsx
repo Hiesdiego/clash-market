@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { getDreamDexBrowserClient } from "@/lib/dreamdex/browser-client";
 import { assetDisplayName, marketPath, MarketCard, type MarketCardView } from "@/components/markets/market-card";
+import { arenaMarketMeta } from "@/lib/markets/arena";
+import { marketCategory } from "@/lib/markets/category";
 import { MarketCardFooter } from "@/components/markets/market-card-footer";
 import { ShareButtons } from "@/components/ui/share-buttons";
 
@@ -132,6 +134,17 @@ export function MarketDetail({ marketId }: { marketId: string }) {
     [all, market]
   );
   const assetName = market ? assetDisplayName(market.asset) : "asset";
+  const arena = market ? arenaMarketMeta(market.asset) : null;
+  const category = market
+    ? marketCategory({ asset: market.asset, openingPrice: market.openingPrice, strikePrice: market.strikePrice, kind: market.kind })
+    : "price";
+  const usesRealQuestion = category !== "price";
+  const detailSubtitle = arena ? arena.label : category === "other" ? "Prediction market" : assetName;
+  const detailNote = arena
+    ? "The market resolves on the agent's net asset value (NAV) when the session closes."
+    : category === "other"
+      ? "The market resolves when the window closes."
+      : `The market resolves against the ${market?.kind === "fixed-strike" ? "strike" : "opening"} price when the window closes.`;
 
   // Live odds movement — poll the order book directly (fresher and lighter than
   // re-pulling the whole board) and keep a rolling window of samples.
@@ -203,7 +216,7 @@ export function MarketDetail({ marketId }: { marketId: string }) {
         <Link href="/" className="text-sm text-chalk-500 transition-colors hover:text-chalk-300">
           ← All markets
         </Link>
-        <ShareButtons path={marketPath(toView(market))} text={`${assetName} price direction — trade it on Clash Markets`} />
+        <ShareButtons path={marketPath(toView(market))} text={usesRealQuestion ? `${market.question} — trade it on Clash Markets` : `${assetName} price direction — trade it on Clash Markets`} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_.9fr] lg:items-start">
@@ -211,9 +224,9 @@ export function MarketDetail({ marketId }: { marketId: string }) {
         <section className="rounded-2xl border border-chalk-800 bg-pitch-900/90 p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h1 className="text-xl font-semibold leading-snug text-chalk-100">Will {assetName} finish higher at expiry?</h1>
-              <p className="mt-1 text-xs uppercase tracking-widest text-chalk-500">Odds movement · {assetName}</p>
-              <p className="mt-2 max-w-lg text-xs text-chalk-500">The market resolves against the {market.kind === "fixed-strike" ? "strike" : "opening"} price when the window closes.</p>
+              <h1 className="text-xl font-semibold leading-snug text-chalk-100">{usesRealQuestion ? market.question : `Will ${assetName} finish higher at expiry?`}</h1>
+              <p className="mt-1 text-xs uppercase tracking-widest text-chalk-500">Odds movement · {detailSubtitle}</p>
+              <p className="mt-2 max-w-lg text-xs text-chalk-500">{detailNote}</p>
             </div>
             {market.status === "trading" ? (
               <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gain">

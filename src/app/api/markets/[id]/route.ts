@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ORACLE_PRICE_DECIMALS } from "@/lib/dreamdex/opening-price";
+import { marketCategory } from "@/lib/markets/category";
 
 type MarketRow = {
   id: string;
@@ -32,6 +33,10 @@ function toDiscoveryMarket(market: MarketRow) {
     ? strikeNumeric / 10 ** ORACLE_PRICE_DECIMALS
     : null;
   const kind = strikePrice != null ? "fixed-strike" : "up-down";
+  const category = marketCategory({ asset: market.underlying, openingPrice, strikePrice, kind });
+  const question = category === "price"
+    ? (kind === "fixed-strike" && rawQuestion ? rawQuestion : `${market.underlying} — up or down by expiry?`)
+    : rawQuestion || `${market.underlying} — up or down by expiry?`;
   const symbol = typeof snapshot.symbol === "string" ? snapshot.symbol : null;
   const poolAddress = typeof snapshot.poolAddress === "string"
     ? snapshot.poolAddress
@@ -46,9 +51,7 @@ function toDiscoveryMarket(market: MarketRow) {
     marketType: "BINARY",
     kind,
     strikePrice,
-    question: kind === "fixed-strike" && rawQuestion
-      ? rawQuestion
-      : `${market.underlying} — up or down by expiry?`,
+    question,
     status: market.status,
     resolutionOutcome: market.resolution_outcome,
     referencePrice: strikePrice ?? openingPrice,
