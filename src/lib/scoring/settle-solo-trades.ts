@@ -34,30 +34,37 @@ export async function settleSoloTrades(): Promise<SoloSettlementResult> {
   const exchange = getDreamDexReadClient();
   const marketIds = [...new Set(trades.map((trade) => trade.onchain_market_id.toLowerCase()))];
 
-  const marketStates = await Promise.all(
+  // Read each market straight from chain (works before indexing). Crucially the
+  // WINNER comes from this same on-chain read, NOT the indexer's getBinaryMarket
+  // — that can still report a null winner for a market already resolved on-chain
+  // (indexer lag), which would leave the trade stuck "open" forever. One
+  // unreadable market must not strand every other trade's settlement.
+  const onchainEntries = await Promise.all(
     marketIds.map(async (marketId) => {
-      const market = await exchange.client.getMarketOnchain(marketId as `0x${string}`);
-      const finalized = market.status === 4
-        ? await exchange.client.getBinaryMarket(marketId as `0x${string}`)
-        : null;
-      return { marketId, status: market.status, finalized };
+      try {
+        const onchain = await exchange.client.getMarketOnchain(marketId as `0x${string}`);
+        return [marketId, onchain] as const;
+      } catch (readError) {
+        console.warn(
+          `[worker][solo] on-chain read failed for ${marketId}:`,
+          readError instanceof Error ? readError.message : String(readError),
+        );
+        return null;
+      }
     }),
   );
-  const statusById = new Map(marketStates.map((state) => [state.marketId, state.status]));
-  const finalizedById = new Map(
-    marketStates
-      .filter((state) => state.finalized)
-      .map((state) => [state.marketId, state.finalized!]),
-  );
+  const onchainById = new Map(onchainEntries.filter((entry): entry is NonNullable<typeof entry> => entry !== null));
 
   let tradesSettled = 0;
   let tradesVoided = 0;
 
   for (const trade of trades) {
     const marketId = trade.onchain_market_id.toLowerCase();
-    const status = statusById.get(marketId);
+    const onchain = onchainById.get(marketId);
+    if (!onchain) continue;
 
-    if (status === 5) {
+    // Void is authoritative from the on-chain flag — redeem both sides, 0 points.
+    if (onchain.isVoided || onchain.status === 5) {
       const { error: updateError } = await admin
         .from("solo_trades")
         .update({ status: "voided", outcome: "voided", points_awarded: 0, settled_at: new Date().toISOString() })
@@ -68,15 +75,11 @@ export async function settleSoloTrades(): Promise<SoloSettlementResult> {
       continue;
     }
 
-    if (status !== 4) continue;
+    // Not resolved on-chain yet — leave open, retry on the next sweep.
+    if (!(onchain.isResolved || onchain.status === 4)) continue;
 
-
-    const finalizedMarket = finalizedById.get(marketId);
-    const outcome = finalizedMarket?.winningOutcome === 0
-      ? "up"
-      : finalizedMarket?.winningOutcome === 1
-        ? "down"
-        : null;
+    // Winner read straight from chain (0 = YES = up, 1 = NO = down).
+    const outcome = onchain.winningOutcome === 0 ? "up" : onchain.winningOutcome === 1 ? "down" : null;
     if (!outcome) continue;
 
     const correct = trade.direction === outcome;

@@ -362,6 +362,18 @@ export async function syncResolvedMarkets(scope: SyncScope): Promise<SyncResult>
     const resolutionOutcome =
       market.winningOutcome === 0 ? "up" : market.winningOutcome === 1 ? "down" : null;
 
+    // A finalized market with no concrete one-hot winner is either a void or a
+    // winner the indexer has not populated yet. Do NOT write status='resolved'
+    // with a null outcome — that state is indistinguishable from a real
+    // resolution to settle-picks, which then skips those picks and strands them
+    // as "settling" forever. Defer it to reconcileStuckMarkets, which decides
+    // void-vs-resolved straight from chain (getMarketOnchain.isVoided /
+    // isResolved) instead of trusting a possibly-lagging indexer winner.
+    if (resolutionOutcome === null) {
+      skipped.push({ marketId: market.marketId, reason: "finalized with null winner — deferred to on-chain reconcile" });
+      continue;
+    }
+
     const { error } = await admin
       .from("markets")
       .update({

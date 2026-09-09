@@ -10,7 +10,7 @@ import { PICK_LIMITS_BY_LEAGUE, MIN_PICKS_BY_LEAGUE, LEAGUE_CONFIG, type LeagueT
 import { activeChain, activeCollateral } from "@/lib/chains/wallet-balances";
 import { useAuth } from "@/components/providers/auth-provider";
 import type { Database } from "@/lib/supabase/database.types";
-import { MarketCard, type MarketCardView } from "@/components/markets/market-card";
+import { marketPath, MarketCard, type MarketCardView } from "@/components/markets/market-card";
 import { marketCategory } from "@/lib/markets/category";
 import { MarketCardFooter } from "@/components/markets/market-card-footer";
 import { ScoringExplainer } from "@/components/leagues/scoring-explainer";
@@ -325,12 +325,14 @@ export function SquadBuilder({ leagueType }: { leagueType: LeagueType }) {
           {board.map((market) => {
             const alreadyPicked = draft.some((p) => p.market.id === market.id);
             const full = draft.length >= pickLimit;
+            const view = toView(market);
             return (
               <MarketCard
                 key={market.id}
-                view={toView(market)}
+                view={view}
+                href={marketPath(view)}
                 dimmed={fadingMarkets.has(market.id)}
-                footer={<MarketCardFooter mode="pick" market={toView(market)} picked={alreadyPicked} disabled={full} onPick={(direction) => addPick(market, direction)} />}
+                footer={<MarketCardFooter mode="pick" market={view} picked={alreadyPicked} disabled={full} onPick={(direction) => addPick(market, direction)} />}
               />
             );
           })}

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { HeaderWalletBalance } from "@/components/auth/header-wallet-balance";
 import { Button } from "@/components/ui/button";
 import { getPublicEnv } from "@/lib/env";
 
@@ -122,6 +123,8 @@ export function ConnectWalletButton() {
               </div>
               <span className="rounded-full bg-gain/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-gain">Live</span>
             </div>
+
+            <HeaderWalletBalance variant="menu" />
 
             <div className="mt-4 rounded-xl border border-chalk-800 bg-pitch-950/70 p-3">
               <p className="text-[10px] uppercase tracking-widest text-chalk-500">Wallet address</p>

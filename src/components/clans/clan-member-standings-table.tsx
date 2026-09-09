@@ -1,0 +1,59 @@
+interface ClanMemberStandingRow {
+  rank: number;
+  user_id: string;
+  display_name: string | null;
+  wallet_address: string;
+  role: "owner" | "member";
+  is_active: boolean;
+  total_points: number;
+}
+
+const MEDALS: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
+
+function memberLabel(row: ClanMemberStandingRow) {
+  return row.display_name ?? `${row.wallet_address.slice(0, 6)}…${row.wallet_address.slice(-4)}`;
+}
+
+export function ClanMemberStandingsTable({ rows }: { rows: ClanMemberStandingRow[] }) {
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-chalk-800 px-6 py-12 text-center">
+        <p className="text-sm text-chalk-400">No clan members yet.</p>
+        <p className="mt-1 text-xs text-chalk-600">Invite a teammate to start building the table.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-chalk-800 bg-pitch-900/60">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-3 border-b border-chalk-800 px-3 py-3 text-[11px] uppercase tracking-widest text-chalk-500 sm:grid-cols-[auto_1fr_auto_auto] sm:gap-4 sm:px-5">
+        <span>Rank</span>
+        <span>Member</span>
+        <span className="hidden text-right sm:block">Status</span>
+        <span className="text-right">Points</span>
+      </div>
+      <ul>
+        {rows.map((row) => {
+          const isPodium = row.rank <= 3;
+          return (
+            <li
+              key={row.user_id}
+              className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b border-chalk-800/60 px-3 py-3 last:border-0 sm:grid-cols-[auto_1fr_auto_auto] sm:gap-4 sm:px-5 ${row.rank === 1 ? "bg-accent/5" : ""}`}
+            >
+              <span className="flex w-8 items-center justify-center">
+                {isPodium ? <span className="text-lg" aria-label={`Rank ${row.rank}`}>{MEDALS[row.rank]}</span> : <span className="font-mono text-sm tabular-nums text-chalk-500">{row.rank}</span>}
+              </span>
+              <span className="min-w-0 truncate font-medium text-chalk-100">
+                {memberLabel(row)}{row.role === "owner" && <span className="ml-2 text-xs text-accent">Owner</span>}
+              </span>
+              <span className="hidden text-right text-xs text-chalk-500 sm:block">{row.is_active ? "Active" : "Former member"}</span>
+              <span className={`text-right font-display text-lg tabular-nums ${isPodium ? "text-accent" : "text-chalk-100"}`}>
+                {Number(row.total_points).toFixed(1)}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}

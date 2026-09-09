@@ -65,7 +65,10 @@ function windowSlug(seconds?: number | null): string {
 export function marketPath(view: MarketCardView): string {
   const asset = assetDisplayName(view.asset).toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const type = view.kind === "fixed-strike" ? "above-strike" : "up-down";
-  return `/markets/${asset}-${type}-${windowSlug(view.windowSeconds)}-${view.id.slice(-8)}`;
+  // League board rows use the database UUID as `id`, while the market detail
+  // endpoint resolves readable slugs by the on-chain market id suffix.
+  const identifier = view.onchainMarketId ?? view.id;
+  return `/markets/${asset}-${type}-${windowSlug(view.windowSeconds)}-${identifier.slice(-8)}`;
 }
 
 export function AssetLogo({ asset, size = "md" }: { asset: string; size?: "sm" | "md" }) {

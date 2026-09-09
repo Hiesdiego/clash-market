@@ -288,8 +288,8 @@ function DailyMomentumHero() {
         <div className="min-w-0 lg:w-[52%]">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gain">Daily Clash winners</p>
-              <p className="mt-1 text-xs text-chalk-500">Top three · 00:00–11:00 UTC+1{date && ` · ${date}`}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gain">Spotlight</p>
+              <p className="mt-1 text-xs text-chalk-500">Top three · 00:00–23:00 UTC+1{date && ` · ${date}`}</p>
             </div>
             <span className="text-xs text-chalk-600">Public podium</span>
           </div>
@@ -303,7 +303,7 @@ function DailyMomentumHero() {
                     <span className="font-mono text-sm font-bold tabular-nums text-gain">{winner ? `${winner.points.toFixed(0)} pts` : "—"}</span>
                   </div>
                   <p className="mt-2 truncate text-xs font-semibold text-chalk-200">{winner ? labelFor(winner) : "Open spot"}</p>
-                  {winner && <ShareButtons path={`/daily-winner-card/${date}/${rank}`} text={`I finished #${rank} in today's Clash prediction league 🔥`} className="mt-2" />}
+                  {winner && <ShareButtons path={`/daily-winner-card/${date}/${rank}`} text={`I made today's Clash Spotlight at #${rank} 🔥`} className="mt-2" />}
                 </div>
               );
             })}

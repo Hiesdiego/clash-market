@@ -7,7 +7,7 @@ import { activeCollateral, getWalletBalances } from "@/lib/chains/wallet-balance
 import { Button } from "@/components/ui/button";
 import { getPublicEnv } from "@/lib/env";
 
-export function HeaderWalletBalance() {
+export function HeaderWalletBalance({ variant = "pill" }: { variant?: "pill" | "menu" }) {
   const { authenticated, wallet, walletReady } = useAuth();
   const [balance, setBalance] = useState<bigint | null>(null);
   const [claiming, setClaiming] = useState(false);
@@ -34,6 +34,12 @@ export function HeaderWalletBalance() {
   if (!authenticated) return null;
   const faucetBotUrl = getPublicEnv().NEXT_PUBLIC_TESTNET_FAUCET_BOT_URL;
 
+  const formattedBalance = !walletReady
+    ? "Loading…"
+    : balance === null
+      ? "Unavailable"
+      : `${Number(formatUnits(balance, collateral.decimals)).toFixed(2)} ${collateral.symbol}`;
+
   async function claimTokens() {
     setClaiming(true);
     setClaimMessage(null);
@@ -50,10 +56,24 @@ export function HeaderWalletBalance() {
     }
   }
 
+  if (variant === "menu") {
+    return (
+      <div className="mt-4 rounded-xl border border-chalk-800 bg-pitch-950/70 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-chalk-500">Wallet balance</p>
+            <p className="mt-1 text-xs text-chalk-400">Available for market picks</p>
+          </div>
+          <span className="font-mono text-sm font-semibold text-chalk-100">{formattedBalance}</span>
+        </div>
+      </div>
+    );
+  }
+
   return <div className="relative flex items-center gap-2 rounded-full border border-chalk-700 bg-pitch-900/80 px-3 py-1.5 text-xs">
     <span className="h-1.5 w-1.5 rounded-full bg-gain" />
     <span className="text-chalk-500">Balance</span>
-    <span className="font-mono font-semibold text-chalk-100">{!walletReady ? "Loading…" : balance === null ? "Unavailable" : `${Number(formatUnits(balance, collateral.decimals)).toFixed(2)} ${collateral.symbol}`}</span>
+    <span className="font-mono font-semibold text-chalk-100">{formattedBalance}</span>
     {faucetBotUrl ? <a href={faucetBotUrl} target="_blank" rel="noreferrer" className="ml-1 rounded-full border border-accent/50 px-2.5 py-1 text-[11px] font-semibold text-accent hover:bg-accent/10">Get test tokens</a> : <Button title="Claim 1 STT and 10 tUSDC once per day" size="sm" variant="outline" onClick={claimTokens} loading={claiming} className="ml-1 h-7 rounded-full px-2.5 text-[11px]">Claim</Button>}
     {claimMessage && <span className="absolute right-0 top-10 z-50 max-w-64 rounded-lg border border-chalk-700 bg-pitch-900 px-3 py-2 text-[11px] text-chalk-200 shadow-xl">{claimMessage}</span>}
   </div>;

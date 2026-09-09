@@ -207,15 +207,29 @@ interface TableRows {
     slug: string;
     owner_id: string;
     join_code: string;
-    league_type: LeagueType;
+    league_type: LeagueType | null;
     registered_at: string | null;
     created_at: string;
+  };
+  clan_leagues: {
+    clan_id: string;
+    league_type: LeagueType;
+    clash_league_id: string | null;
+    registered_at: string;
+  };
+  clan_member_points: {
+    clan_id: string;
+    user_id: string;
+    league_type: LeagueType;
+    baseline_points: number;
+    locked_points: number;
   };
   clan_memberships: {
     clan_id: string;
     user_id: string;
     role: "owner" | "member";
     joined_at: string;
+    left_at: string | null;
   };
   clash_leagues: {
     id: string;
@@ -361,7 +375,7 @@ export interface Database {
         Returns: TableRows["clash_leagues"];
       };
       create_clan: {
-        Args: { p_name: string; p_slug: string; p_league_type: string };
+        Args: { p_name: string; p_slug: string };
         Returns: TableRows["clans"];
       };
       join_clan: {
@@ -369,7 +383,15 @@ export interface Database {
         Returns: TableRows["clans"];
       };
       register_clan: {
+        Args: { p_clan_id: string; p_league_type: string };
+        Returns: TableRows["clan_leagues"];
+      };
+      leave_clan: {
         Args: { p_clan_id: string };
+        Returns: null;
+      };
+      transfer_clan_ownership: {
+        Args: { p_clan_id: string; p_new_owner_id: string };
         Returns: TableRows["clans"];
       };
       get_my_clans: {
@@ -378,23 +400,33 @@ export interface Database {
           id: string;
           name: string;
           slug: string;
-          league_type: LeagueType;
           join_code: string;
           owner_id: string;
           is_owner: boolean;
           member_count: number;
-          registered_at: string | null;
+          registered_leagues: LeagueType[];
         }[];
       };
-      get_clan_standings: {
-        Args: { p_league_type?: string | null };
+      get_clan_member_standings: {
+        Args: { p_clan_id: string };
         Returns: {
-          clan_id: string;
-          clan_name: string;
-          league_type: LeagueType;
-          member_count: number;
-          clan_total: number;
+          user_id: string;
+          display_name: string | null;
+          wallet_address: string;
+          role: "owner" | "member";
+          is_active: boolean;
+          total_points: number;
           rank: number;
+        }[];
+      };
+      get_clan_members: {
+        Args: { p_clan_id: string };
+        Returns: {
+          user_id: string;
+          display_name: string | null;
+          wallet_address: string;
+          role: "owner" | "member";
+          is_active: boolean;
         }[];
       };
       get_user_stats: {

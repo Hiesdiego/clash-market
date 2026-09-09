@@ -25,11 +25,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ dat
   return new ImageResponse(
     <div style={{ width: 1200, height: 630, display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#07110d", color: "#f4f7f4", padding: 58, fontFamily: "sans-serif" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ color: "#ffd23f", fontSize: 30, letterSpacing: 5 }}>CLASH PREDICTION HIGH RANK</span>
+        <span style={{ color: "#ffd23f", fontSize: 30, letterSpacing: 5 }}>CLASH SPOTLIGHT</span>
         <span style={{ fontSize: 46 }}>{medal}</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column" }}>
-        <span style={{ color: "#8ea297", fontSize: 28 }}>#{rank} daily winner · {date}</span>
+        <span style={{ color: "#8ea297", fontSize: 28 }}>#{rank} Spotlight · {date} · 00:00–23:00 UTC+1</span>
         <span style={{ marginTop: 16, fontSize: 76, fontWeight: 700 }}>{name}</span>
         <div style={{ display: "flex", gap: 36, marginTop: 28, fontSize: 30 }}>
           <span style={{ color: "#3ddc84" }}>{Number(winner.points).toFixed(0)} points</span>

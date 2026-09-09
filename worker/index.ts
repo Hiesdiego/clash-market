@@ -21,6 +21,7 @@
 import { createServer } from "node:http";
 import { syncAllMarkets } from "../src/lib/dreamdex/sync";
 import { runSettlementSweep } from "../src/lib/scoring/run-settlement-sweep";
+import { reconcileStuckMarkets } from "../src/lib/scoring/reconcile-stuck-markets";
 import { settleSoloTrades } from "../src/lib/scoring/settle-solo-trades";
 import { createSupabaseAdminClient } from "../src/lib/supabase/admin";
 import { LEAGUE_TYPES, type LeagueType } from "../src/lib/constants/leagues";
@@ -36,6 +37,9 @@ const SETTLEMENT_INTERVAL_MS: Record<LeagueType, number> = {
 };
 const SOLO_SETTLEMENT_INTERVAL_MS = 60_000;
 const ALL_MARKETS_SYNC_INTERVAL_MS = 60_000;
+// The on-chain reconcile is a backstop for the indexer, not the primary path —
+// run it on a calmer cadence than the per-league sweeps.
+const RECONCILE_INTERVAL_MS = 5 * 60_000;
 
 const healthServer = createServer((request, response) => {
   if (request.url !== "/health") {
@@ -97,6 +101,17 @@ function scheduleLeagueJobs() {
     reportHealth("sync-all-markets", () => syncAllMarkets());
   runAllMarketsSync();
   setInterval(runAllMarketsSync, ALL_MARKETS_SYNC_INTERVAL_MS);
+
+  // Comprehensive on-chain backstop (gotcha #1 — the indexer lags): reconcile
+  // any market that has settled on-chain but is still non-terminal in our DB,
+  // scope "all" so it also covers uncurated / solo markets (league_type = null)
+  // that the per-league sweeps never touch. Reads void-vs-resolved straight
+  // from chain; the per-league settlement + solo jobs then score the picks and
+  // trades on the rows it fixes.
+  const runReconcile = () =>
+    reportHealth("reconcile-stuck-markets", () => reconcileStuckMarkets("all"));
+  runReconcile();
+  setInterval(runReconcile, RECONCILE_INTERVAL_MS);
 
   for (const league of LEAGUE_TYPES) {
     const runSettlement = () =>
